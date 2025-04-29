@@ -1,0 +1,95 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import r2_score
+
+# 读取数据
+df = pd.read_csv("Cleaned_Data.csv")
+
+# 删除目标变量中为 NaN 的行
+df.dropna(subset=['Assistance Amount'], inplace=True)
+
+# 简单数据预处理
+num_cols = df.select_dtypes(include=['float64', 'int64']).columns
+cat_cols = df.select_dtypes(include=['object']).columns
+
+num_imputer = SimpleImputer(strategy='median')
+cat_imputer = SimpleImputer(strategy='most_frequent')
+
+df[num_cols] = num_imputer.fit_transform(df[num_cols])
+df[cat_cols] = cat_imputer.fit_transform(df[cat_cols])
+
+# Label Encoding 类别变量
+label_encoders = {}
+for col in cat_cols:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
+
+# 选择特征和目标
+X = df.drop(["Assistance Amount", "Recommendation"], axis=1)
+y = df['Assistance Amount']
+
+# 标准化
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 划分训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+# ========== 改良版KNN 回归 ==========
+param_grid_knn = {
+    'n_neighbors': [3, 5, 7, 9, 11],  # 不同的邻居数量
+    'metric': ['euclidean', 'manhattan', 'chebyshev', 'cosine']  # 不同的距离度量
+}
+
+knn = KNeighborsRegressor()
+grid_knn = GridSearchCV(knn, param_grid_knn, cv=5, scoring='r2')
+grid_knn.fit(X_train, y_train)
+
+best_knn = grid_knn.best_estimator_
+y_pred_knn = best_knn.predict(X_test)
+knn_r2 = r2_score(y_test, y_pred_knn)
+print(f"KNN R^2: {knn_r2:.4f}")
+
+# ========== Random Forest 回归 ==========
+param_grid_rf = {
+    'n_estimators': [100],
+    'max_depth': [5, 10, 15, None],
+    'min_samples_leaf': [1, 2, 5]
+}
+
+rf = RandomForestRegressor(random_state=42)
+grid_rf = GridSearchCV(rf, param_grid_rf, cv=5, scoring='r2')
+grid_rf.fit(X_train, y_train)
+
+best_rf = grid_rf.best_estimator_
+y_pred_rf = best_rf.predict(X_test)
+rf_r2 = r2_score(y_test, y_pred_rf)
+print(f"Random Forest R^2: {rf_r2:.4f}")
+
+# ========== CART 决策树 回归 ==========
+dt = DecisionTreeRegressor(random_state=42)
+path = dt.cost_complexity_pruning_path(X_train, y_train)
+ccp_alphas = path.ccp_alphas
+
+# 定义参数网格
+param_grid_dt = {
+    'max_depth': [None, 5, 10, 15],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'ccp_alpha': ccp_alphas  # 加入ccp_alpha进行搜索
+}
+
+grid_dt = GridSearchCV(dt, param_grid_dt, cv=5, scoring='r2')
+grid_dt.fit(X_train, y_train)
+
+best_dt = grid_dt.best_estimator_
+y_pred_dt = best_dt.predict(X_test)
+dt_r2 = r2_score(y_test, y_pred_dt)
+print(f"CART Decision Tree R^2: {dt_r2:.4f}")
