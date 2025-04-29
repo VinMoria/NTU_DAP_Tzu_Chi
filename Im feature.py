@@ -13,7 +13,7 @@ from sklearn.tree import DecisionTreeRegressor, plot_tree
 from sklearn.metrics import r2_score
 
 # 读取数据
-df = pd.read_csv("Cleaned_Data.csv")
+df = pd.read_csv("Cleaned_Data__Updated_Case_Profile_Count_.csv")
 
 # 删除目标变量中为NaN的行
 df.dropna(subset=['Assistance Amount'], inplace=True)
@@ -63,12 +63,20 @@ dt = DecisionTreeRegressor(random_state=42)
 path = dt.cost_complexity_pruning_path(X_train, y_train)
 ccp_alphas = path.ccp_alphas
 
+# 定义参数网格
 param_grid_dt = {
-    'max_depth': [None, 5, 10, 15],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4],
-    'ccp_alpha': ccp_alphas
+    'max_depth': [3, 5, 8, 12,None],               # 限制树深度，防止过拟合
+    'min_samples_split': [5, 10, 20],         # 样本不多，建议设高点
+    'min_samples_leaf': [2, 5, 10],           # 每片叶子至少有几个样本
+    'ccp_alpha': ccp_alphas  
 }
+
+# param_grid_dt = {
+#     'max_depth': [None, 5, 10, 15],
+#     'min_samples_split': [2, 5, 10],
+#     'min_samples_leaf': [1, 2, 4],
+#     'ccp_alpha': ccp_alphas
+# }
 
 grid_dt = GridSearchCV(dt, param_grid_dt, cv=5, scoring='r2')
 grid_dt.fit(X_train, y_train)
