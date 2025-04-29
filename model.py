@@ -7,6 +7,8 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
+from sklearn.svm import SVR
+import xgboost as xgb 
 
 # 读取数据
 df = pd.read_csv("Cleaned_Data.csv")
@@ -93,3 +95,37 @@ best_dt = grid_dt.best_estimator_
 y_pred_dt = best_dt.predict(X_test)
 dt_r2 = r2_score(y_test, y_pred_dt)
 print(f"CART Decision Tree R^2: {dt_r2:.4f}")
+
+# ========== XGBoost 回归 ==========
+
+param_grid_xgb = {
+    'n_estimators': [100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.01, 0.1, 0.2]
+}
+
+xgbr = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+grid_xgb = GridSearchCV(xgbr, param_grid_xgb, cv=5, scoring='r2')
+grid_xgb.fit(X_train, y_train)
+
+best_xgb = grid_xgb.best_estimator_
+y_pred_xgb = best_xgb.predict(X_test)
+xgb_r2 = r2_score(y_test, y_pred_xgb)
+print(f"XGBoost R^2: {xgb_r2:.4f}")
+
+# ========== 支持向量机(SVM) 回归 ==========
+
+param_grid_svm = {
+    'C': [0.1, 1, 10],
+    'epsilon': [0.01, 0.1, 0.2],
+    'kernel': ['linear', 'rbf']
+}
+
+svm = SVR()
+grid_svm = GridSearchCV(svm, param_grid_svm, cv=5, scoring='r2')
+grid_svm.fit(X_train, y_train)
+
+best_svm = grid_svm.best_estimator_
+y_pred_svm = best_svm.predict(X_test)
+svm_r2 = r2_score(y_test, y_pred_svm)
+print(f"SVM R^2: {svm_r2:.4f}")
