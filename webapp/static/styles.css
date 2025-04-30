@@ -1,0 +1,63 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* 隐藏页面滚动条 */
+}
+
+.form-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px; /* 设置最大宽度适应三列布局 */
+    width: 100%;
+    max-height: 80vh; /* 设置最大高度以容纳滚动 */
+    overflow-y: auto; /* 允许垂直滚动 */
+    display: flex; /* 使用Flexbox布局 */
+    flex-wrap: wrap; /* 支持换行 */
+}
+
+.form-group {
+    flex: 1 1 30%; /* 每个 .form-group 占据三分之一的宽度 */
+    box-sizing: border-box;
+    padding: 10px; /* 添加间隙 */
+    min-width: 250px; /* 设置最小宽度，以确保布局在小屏幕上不坍塌 */
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333333;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
