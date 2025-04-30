@@ -1,0 +1,16 @@
+{
+    "date": "2025-04-30",
+    "type_of_assistance_applied": "medical_consumables_assistance",
+    "care_team": "east_2_2",
+    "gender": "male",
+    "age": "12",
+    "race": "javanese",
+    "occupation": "employed",
+    "housing": "nursing_home",
+    "home_ownership": "rented",
+    "monthly_rental": "130.9",
+    "identity_id_type": "short_term_visit_pass",
+    "intake_no_of_hh": "1",
+    "intake_pci": "123",
+    "intake_status": "pending"
+}

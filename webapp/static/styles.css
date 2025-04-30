@@ -22,6 +22,17 @@ body {
     flex-wrap: wrap; /* 支持换行 */
 }
 
+.res-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px; /* 设置最大宽度适应三列布局 */
+    width: 100%;
+    max-height: 80vh; /* 设置最大高度以容纳滚动 */
+    flex-wrap: wrap; /* 支持换行 */
+}
+
 .form-group {
     flex: 1 1 30%; /* 每个 .form-group 占据三分之一的宽度 */
     box-sizing: border-box;
@@ -60,4 +71,21 @@ button {
 
 button:hover {
     background-color: #0056b3;
+}
+
+/* 新增样式以使链接看起来像按钮 */
+a.button-link {
+    display: inline-block; /* 将链接显示为块元素 */
+    padding: 10px 15px; /* 添加按钮的填充 */
+    color: white; /* 按钮文字颜色 */
+    text-decoration: none; /* 去除链接下划线 */
+    background-color: #007bff; /* 按钮背景色 */
+    border-radius: 4px; /* 按钮圆角 */
+    transition: background-color 0.3s ease; /* 添加平滑过渡效果 */
+    text-align: center; /* 文字居中 */
+    cursor: pointer; /* 鼠标悬停时改为指针 */
+}
+
+a.button-link:hover {
+    background-color: #0056b3; /* 鼠标悬停时背景色变化 */
 }
