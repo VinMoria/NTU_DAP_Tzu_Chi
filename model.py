@@ -12,10 +12,10 @@ import xgboost as xgb
 import pickle
 
 # 读取数据
-df = pd.read_csv("Cleaned_Data__Updated_Case_Profile_Count_.csv")
+df = pd.read_csv("data\Cleaned_Data_0502.csv")
 
 # 删除目标变量中为 NaN 的行
-df.dropna(subset=['Assistance Amount'], inplace=True)
+df.dropna(subset=['amount_total'], inplace=True)
 
 # 简单数据预处理
 num_cols = df.select_dtypes(include=['float64', 'int64']).columns
@@ -35,8 +35,8 @@ for col in cat_cols:
     label_encoders[col] = le
 
 # 选择特征和目标
-X = df.drop(["Assistance Amount", "Recommendation"], axis=1)
-y = df['Assistance Amount']
+X = df.drop(["amount_total", "care_team"], axis=1)
+y = df['amount_total']
 
 # 标准化
 scaler = StandardScaler()
@@ -81,13 +81,20 @@ dt = DecisionTreeRegressor(random_state=42)
 path = dt.cost_complexity_pruning_path(X_train, y_train)
 ccp_alphas = path.ccp_alphas
 
-# 定义参数网格
 param_grid_dt = {
-    'max_depth': [3, 5, 8, 12,None],               # 限制树深度，防止过拟合
-    'min_samples_split': [5, 10, 20],         # 样本不多，建议设高点
-    'min_samples_leaf': [2, 5, 10],           # 每片叶子至少有几个样本
-    'ccp_alpha': ccp_alphas  
+    'max_depth': [3, 5, 8, 12, None],
+    'min_samples_split': [5, 10, 20],
+    'min_samples_leaf': [2, 5, 10],
+    'ccp_alpha': [0.0, 0.01, 0.1, 0.2] 
 }
+
+# 定义参数网格
+# param_grid_dt = {
+#     'max_depth': [3, 5, 8, 12,None],               # 限制树深度，防止过拟合
+#     'min_samples_split': [5, 10, 20],         # 样本不多，建议设高点
+#     'min_samples_leaf': [2, 5, 10],           # 每片叶子至少有几个样本
+#     'ccp_alpha': ccp_alphas  
+# }
 
 # param_grid_dt = {
 #     'max_depth': [None, 5, 10, 15],

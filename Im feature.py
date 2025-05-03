@@ -100,6 +100,8 @@ print("\nTop 15 Feature Importances from Random Forest (Regression):")
 for i in range(15):
     print(f"{i+1}. {X.columns[indices[i]]}: {importances[indices[i]]:.4f}")
 
+
+
 # 绘制特征重要性图
 plt.figure(figsize=(12, 6))
 plt.bar(range(15), importances[indices[:15]], align="center")
