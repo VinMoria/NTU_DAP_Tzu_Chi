@@ -9,6 +9,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
 from sklearn.svm import SVR
 import xgboost as xgb 
+import pickle
 
 # 读取数据
 df = pd.read_csv("Cleaned_Data__Updated_Case_Profile_Count_.csv")
@@ -119,6 +120,11 @@ best_xgb = grid_xgb.best_estimator_
 y_pred_xgb = best_xgb.predict(X_test)
 xgb_r2 = r2_score(y_test, y_pred_xgb)
 print(f"XGBoost R^2: {xgb_r2:.4f}")
+
+
+# 保存模型到文件中
+# with open('./models/xgb.pkl', 'wb') as file:
+#     pickle.dump(best_xgb, file)
 
 # ========== 支持向量机(SVM) 回归 ==========
 
