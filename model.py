@@ -35,7 +35,7 @@ for col in cat_cols:
     label_encoders[col] = le
 
 # 选择特征和目标
-X = df.drop(["amount_total", "care_team"], axis=1)
+X = df.drop(["amount_total", "care_team","assessment_date_time"], axis=1)
 y = df['amount_total']
 
 # 标准化
