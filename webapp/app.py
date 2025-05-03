@@ -1,49 +1,102 @@
 from flask import Flask, request, render_template, jsonify
 import pandas as pd
 import pickle
+from SIBOR import cal_rate
 
 app = Flask(__name__)
 
-MODEL_PATH = './models/xgb.pkl'
+income_cols = [
+    "income_assessment_salary",
+    "income_assessment_cpf_payout",
+    "income_assessment_assistance_from_other_agencies",
+    "income_assessment_assistance_from_relatives_friends",
+    "income_assessment_insurance_payout",
+    "income_assessment_rental_income",
+    "income_assessment_others_income",
+]
 
-@app.route( '/', methods=['GET','POST'])
+expenditure_cols = [
+    "expenditure_assessment_mortgage_rental",
+    "expenditure_assessmen_utilities",
+    "expenditure_assessment_s_cc_fees",
+    "expenditure_assessment_food_expenses",
+    "expenditure_assessment_marketing_groceries",
+    "expenditure_assessment_telecommunications",
+    "expenditure_assessment_transportation",
+    "expenditure_assessmen_medical_expenses",
+    "expenditure_assessment_education_expense",
+    "expenditure_assessmen_contribution_to_family_members",
+    "expenditure_assessment_domestic_helper",
+    "expenditure_assessment_loans_debts_installments",
+    "expenditure_assessment_insurance_premiums",
+    "expenditure_assessment_others_expenditure",
+]
+
+
+MODEL_PATH = "./models/xgb.pkl"
+
+
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-@app.route('/submit', methods=['POST'])
+@app.route("/submit", methods=["POST"])
 def submit_data():
     try:
         # 从请求中获取 JSON 数据
         data = request.get_json()
         df = pd.DataFrame([data])
 
+        # 转移日期变量
+        assessment_date = df.loc[0, "assessment_date"]
+        df.drop(columns=["assessment_date"], inplace=True)
+
         def convert_if_possible(col):
             try:
-                return pd.to_numeric(col, errors='raise')  # 如果不能转为数字会抛出异常
+                return pd.to_numeric(col, errors="raise")  # 如果不能转为数字会抛出异常
             except ValueError:
-                return col.astype('category')  # 不能转换时返回原始列
-        
-        df = df.apply(lambda col: convert_if_possible(col))  # 只对可转换的列进行数字转换
+                return col.astype("category")  # 不能转换时返回原始列
+
+        df = df.apply(
+            lambda col: convert_if_possible(col)
+        )  # 只对可转换的列进行数字转换
+
+        # 计算统计量
+        df["income_total_cal"] = df[income_cols].sum(axis=1)
+        df["expenditure_total_cal"] = df[expenditure_cols].sum(axis=1)
+        df["difference_cal"] = df["income_total_cal"] - df["expenditure_total_cal"]
+
+        # 收入调整
+        target_date = pd.to_datetime(assessment_date)
+        source_date = pd.to_datetime("2024-01-01")
+
+        adjust_rate = cal_rate(source_date, target_date)
+
+        for col in income_cols:
+            df[col] *= adjust_rate
+
         print(df.dtypes)
         print(df)
-        r = model_cal(df)
+        print(assessment_date)
+
+        # r = model_cal(df)
         # 返回成功响应
-        return jsonify({"message": "Success", "r": str(r)}), 200
+        return jsonify({"message": "Success", "r": str(10)}), 200
     except Exception as e:
         print(e)
         return jsonify({"message": "Data processing failed", "error": str(e)}), 500
 
 
-@app.route('/result', methods=['GET','POST'])
+@app.route("/result", methods=["GET", "POST"])
 def result():
-    r = request.args.get('r')
-    return render_template('result.html', r=r)
+    r = request.args.get("r")
+    return render_template("result.html", r=r)
+
 
 def model_cal(df):
-    model = pickle.load(open(MODEL_PATH, 'rb'))
+    model = pickle.load(open(MODEL_PATH, "rb"))
     prediction = model.predict(df)
-    # 修改为预测的第一个元素
     return prediction[0]
 
 
