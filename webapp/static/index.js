@@ -9,7 +9,12 @@ document.addEventListener("DOMContentLoaded", function() {
             const data = {};
 
             formData.forEach((value, key) => {
-                data[key] = value; // 将表单数据转换为 JSON
+                if (key === "custom_input" && value === "0") { // 检查是否为默认值
+                    data[key] = -1;
+                } else {
+                    data[key] = value; // 将表单数据转换为 JSON
+                }
+                console.log(key, value)
             });
 
             fetch('/submit', {
@@ -46,3 +51,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
     
     dateInput.value = `${year}-${month}-${day}`;
 });
+
+function toggleInput() {
+    const defaultCheck = document.getElementById('default_check');
+    const customInput = document.getElementById('custom_input');
+    if (defaultCheck.checked) {
+        customInput.disabled = true;
+        customInput.value = 0; // 设定为默认数字值
+    } else {
+        customInput.disabled = false;
+        customInput.value = ''; // 清除输入框
+    }
+}

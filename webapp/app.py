@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, jsonify
 import pandas as pd
 import pickle
 from SIBOR import cal_rate
+import db_process
 
 app = Flask(__name__)
 
@@ -17,15 +18,15 @@ income_cols = [
 
 expenditure_cols = [
     "expenditure_assessment_mortgage_rental",
-    "expenditure_assessmen_utilities",
+    "expenditure_assessment_utilities",
     "expenditure_assessment_s_cc_fees",
     "expenditure_assessment_food_expenses",
     "expenditure_assessment_marketing_groceries",
     "expenditure_assessment_telecommunications",
     "expenditure_assessment_transportation",
-    "expenditure_assessmen_medical_expenses",
+    "expenditure_assessment_medical_expenses",
     "expenditure_assessment_education_expense",
-    "expenditure_assessmen_contribution_to_family_members",
+    "expenditure_assessment_contribution_to_family_members",
     "expenditure_assessment_domestic_helper",
     "expenditure_assessment_loans_debts_installments",
     "expenditure_assessment_insurance_premiums",
@@ -76,8 +77,15 @@ def submit_data():
         for col in income_cols:
             df[col] *= adjust_rate
 
+
+        # TODO 模型预测
+
+
+        # 导入数据库
         print(df.dtypes)
-        print(df)
+        print(df.columns)
+        df["assessment_date"] = assessment_date
+        print(db_process.insert_case_data(df))
         print(assessment_date)
 
         # r = model_cal(df)

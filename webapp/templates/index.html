@@ -30,6 +30,28 @@
                 <option value="south 3 3">South 3 3</option>
             </select>
         </div> -->
+        <h2 style="width: 100%;">Basic Info</h2>
+
+        <div class="form-group">
+            <label for="date">Assessment Date:</label>
+            <input type="date" id="date" name="assessment_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="type_of_assistance_applied">Type of Assistance Applied:</label>
+            <select id="type_of_assistance_applied" name="type_of_assistances" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="household_living_assistance">Household Living Assistance</option>
+                <option value="medical_transport_assistance">Medical Transport Assistance</option>
+                <option value="medical_consumables_assistance">Medical Consumables Assistance</option>
+                <option value="interim_dialysis_assistance">Interim Dialysis Assistance</option>
+                <option value="hiv_medication_fees">HIV Medication Fees</option>
+                <option value="antenatal_check_fees_assistance">Antenatal Check Fees Assistance</option>
+                <option value="education_fees_assistance">Education Fees Assistance</option>
+                <option value="day_care_fees_assistance">Day Care Fees Assistance</option>
+                <option value="others">Others</option>
+            </select>
+        </div>
 
         <div class="form-group">
             <label for="age">Age:</label>
@@ -151,6 +173,8 @@
             </select>
         </div> -->
 
+        <h2 style="width: 100%;">Income</h2>
+
         <div class="form-group">
             <label for="income_salary">Income Assessment: Salary</label>
             <input type="number" id="income_salary" name="income_assessment_salary" step="0.01" value="0" required>
@@ -189,10 +213,17 @@
             <input type="number" id="income_others" name="income_assessment_others_income" step="0.01" value="0" required>
         </div>
 
+        <div class="form-group">
+            <label for="current_savings">Current Savings</label>
+            <input type="number" id="current_savings" name="current_savings" step="0.01" value="0" required>
+        </div>
+
         <!-- <div class="form-group">
             <label for="income_total">Income Assessment: Total Income</label>
             <input type="number" id="income_total" name="Income Assessment: Total Income" step="0.01" value="0" required>
         </div> -->
+
+        <h2 style="width: 100%;">Expenditure</h2>
 
         <div class="form-group">
             <label for="expenditure_mortgage_rental">Expenditure Assessment: Mortgage/Rental</label>
@@ -202,7 +233,7 @@
 
         <div class="form-group">
             <label for="expenditure_utilities">Expenditure Assessment: Utilities</label>
-            <input type="number" id="expenditure_utilities" name="expenditure_assessmen_utilities" step="0.01"
+            <input type="number" id="expenditure_utilities" name="expenditure_assessment_utilities" step="0.01"
             value="0" required>
         </div>
 
@@ -237,7 +268,7 @@
 
         <div class="form-group">
             <label for="expenditure_medical">Expenditure Assessment: Medical Expenses</label>
-            <input type="number" id="expenditure_medical" name="expenditure_assessmen_medical_expenses" step="0.01"
+            <input type="number" id="expenditure_medical" name="expenditure_assessment_medical_expenses" step="0.01"
             value="0" required>
         </div>
 
@@ -250,7 +281,7 @@
         <div class="form-group">
             <label for="expenditure_contribution_family">Expenditure Assessment: Contribution to Family Members</label>
             <input type="number" id="expenditure_contribution_family"
-                name="expenditure_assessmen_contribution_to_family_members" step="0.01" value="0" required>
+                name="expenditure_assessment_contribution_to_family_members" step="0.01" value="0" required>
         </div>
 
         <div class="form-group">
@@ -279,31 +310,9 @@
             <input type="number" id="expenditure_total" name="Expenditure Assessment: Total Expenditure" step="0.01" value="0" required>
         </div> -->
 
-        <div class="form-group">
-            <label for="current_savings">Current Savings</label>
-            <input type="number" id="current_savings" name="current_savings" step="0.01" value="0" required>
-        </div>
 
-        <div class="form-group">
-            <label for="date">Assessment Date:</label>
-            <input type="date" id="date" name="assessment_date" required>
-        </div>
 
-        <div class="form-group">
-            <label for="type_of_assistance_applied">Type of Assistance Applied:</label>
-            <select id="type_of_assistance_applied" name="type_of_assistances" required>
-                <option value="" disabled selected>Select an option</option>
-                <option value="household_living_assistance">Household Living Assistance</option>
-                <option value="medical_transport_assistance">Medical Transport Assistance</option>
-                <option value="medical_consumables_assistance">Medical Consumables Assistance</option>
-                <option value="interim_dialysis_assistance">Interim Dialysis Assistance</option>
-                <option value="hiv_medication_fees">HIV Medication Fees</option>
-                <option value="antenatal_check_fees_assistance">Antenatal Check Fees Assistance</option>
-                <option value="education_fees_assistance">Education Fees Assistance</option>
-                <option value="day_care_fees_assistance">Day Care Fees Assistance</option>
-                <option value="others">Others</option>
-            </select>
-        </div>
+
 
         <!-- <div class="form-group">
             <label for="ie_difference_self">I&E Difference (self-declaration)</label>
@@ -333,6 +342,8 @@
             <label for="copayment">Copayment</label>
             <input type="number" id="copayment" name="Copayment" step="0.01" value="0" required>
         </div> -->
+
+        <h2 style="width: 100%;">HH</h2>
 
         <div class="form-group">
             <label for="noOfHH">No. of HH:</label>
@@ -368,8 +379,17 @@
             <label for="elderly">Elderly (65 and above):</label>
             <input type="number" id="elderly" name="elderly_65_and_above" value="0" required>
         </div>
+        <h2 style="width: 100%;">Advanced Setting</h2>
 
         <div class="form-group">
+            <label for="custom_option">Income Adjustment Rate:</label>
+            <input type="checkbox" id="default_check" name="income_rate" value="-1" onclick="toggleInput()" checked> Use Default Value (SIBOR Rate)
+            <input type="number" step="0.0001" id="custom_input" name="income_rate" placeholder="Or type your value, e.g. 1.05" required disabled>
+        </div>        
+
+        <h2 style="width: 100%;"></h2>
+
+        <div class="form-group" >
             <label>&nbsp</label>
             <button type="submit" id="submit-button">Submit</button>
         </div>
