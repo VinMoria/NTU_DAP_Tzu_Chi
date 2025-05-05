@@ -5,6 +5,7 @@ from SIBOR import cal_rate
 import db_process
 
 app = Flask(__name__)
+app.config['JSON_SORT_KEYS'] = False
 
 income_cols = [
     "income_assessment_salary",
@@ -41,6 +42,14 @@ MODEL_PATH = "./models/xgb.pkl"
 def index():
     return render_template("index.html")
 
+@app.route("/form", methods=["GET", "POST"])
+def form():
+    return render_template("form.html")
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    return render_template("feedback.html")
+
 
 @app.route("/submit", methods=["POST"])
 def submit_data():
@@ -48,10 +57,12 @@ def submit_data():
         # 从请求中获取 JSON 数据
         data = request.get_json()
         df = pd.DataFrame([data])
+        df_copy = df.copy(deep=True)
 
         # 转移日期变量
         assessment_date = df.loc[0, "assessment_date"]
         df.drop(columns=["assessment_date"], inplace=True)
+        
 
         def convert_if_possible(col):
             try:
@@ -82,15 +93,16 @@ def submit_data():
 
 
         # 导入数据库
-        print(df.dtypes)
-        print(df.columns)
-        df["assessment_date"] = assessment_date
-        print(db_process.insert_case_data(df))
-        print(assessment_date)
+        # print(df.dtypes)
+        # print(df.columns)
+
+        profile_id = db_process.insert_case_data(df_copy)
+        print(profile_id)
+        # print(assessment_date)
 
         # r = model_cal(df)
         # 返回成功响应
-        return jsonify({"message": "Success", "r": str(10)}), 200
+        return jsonify({"message": "Success", "r": str(10), "profile_id":str(profile_id)}), 200
     except Exception as e:
         print(e)
         return jsonify({"message": "Data processing failed", "error": str(e)}), 500
@@ -99,7 +111,44 @@ def submit_data():
 @app.route("/result", methods=["GET", "POST"])
 def result():
     r = request.args.get("r")
-    return render_template("result.html", r=r)
+    profile_id = request.args.get("profile_id")
+    return render_template("result.html", r=r, profile_id = profile_id)
+
+
+@app.route("/search_profile", methods=["POST"])
+def search_profile():
+    try:
+        # 从请求中获取 JSON 数据
+        data = request.get_json()
+        profile_id = int(data.get("profile_id"))
+
+        data_dict = db_process.select_case_by_id(profile_id)
+        data_dict["message"] = "Success"
+        print(data_dict)
+        return jsonify(data_dict), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"message": "Data processing failed", "error": str(e)}), 500
+    
+
+@app.route("/update_feedback", methods=["POST"])
+def supdate_feedback():
+    try:
+        # 从请求中获取 JSON 数据
+        data = request.get_json()
+        feedback_val = int(data.get("feedback"))
+        profile_id = int(data.get("profile_id"))
+
+        db_process.update_feedback(profile_id,feedback_val)
+        
+        # 返回成功响应
+        return jsonify({"success": True})
+
+    except Exception as e:
+        # 记录错误并返回失败响应
+        print(f"Error updating feedback: {e}")
+        return jsonify({"success": False}), 500
+
 
 
 def model_cal(df):

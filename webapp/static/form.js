@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log('Success:', data);
 
                 if (data.r !== undefined) { // 确保 r 存在
-                window.location.href = `/result?r=${data.r}`;
+                window.location.href = `/result?r=${data.r}&profile_id=${data.profile_id}`;
                 } else {
                     console.error('Error: Missing r in response');
                 }

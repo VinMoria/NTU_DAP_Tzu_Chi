@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import json
 
 def create_table():
     conn = sqlite3.connect("Tzuchi.db")
@@ -148,6 +149,30 @@ def select_all_cases():
 
     conn.close()
     return rows
+
+def select_case_by_id(profile_id):
+
+    conn = sqlite3.connect("Tzuchi.db")
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM case_profile WHERE id = ?", (profile_id,))
+    row = cur.fetchone()
+
+    if row is None:
+        conn.close()
+        return None
+
+    # 获取列名
+    cur.execute("SELECT * FROM case_profile")
+    column_names = [description[0] for description in cur.description]
+
+    # 关闭数据库连接
+    conn.close()
+
+    # 从行数据创建字典
+    data_dict = dict(zip(column_names, row))
+
+    return data_dict
 
 if __name__ == "__main__":
     update_feedback(1, 1500)
