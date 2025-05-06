@@ -63,3 +63,8 @@ function toggleInput() {
         customInput.value = ''; // 清除输入框
     }
 }
+
+function countCheckedCheckboxes() {
+    const checkboxes = document.querySelectorAll('input[name="special_case"]:checked');
+    return checkboxes.length;
+}
