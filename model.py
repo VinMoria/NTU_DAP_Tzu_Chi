@@ -1,3 +1,4 @@
+from SIBOR import cal_rate
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -12,7 +13,7 @@ import xgboost as xgb
 import pickle
 
 # 读取数据
-df = pd.read_csv("data\Cleaned_Data_0502.csv")
+df = pd.read_csv("data\Cleaned_Data_0506.csv")
 
 # 删除目标变量中为 NaN 的行
 df.dropna(subset=['amount_total'], inplace=True)
@@ -33,6 +34,46 @@ for col in cat_cols:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
     label_encoders[col] = le
+
+
+def calculate_adjusted_values(df, columns, target_date):
+    source_date = pd.to_datetime("2024-01-01")
+    for column in columns:
+        # Adjust each value in the specified column
+        df[column] = df[column].apply(lambda x: x * cal_rate(source_date, target_date))
+
+# 设置想要调整的列
+columns_to_adjust = [
+    "income_assessment_salary",
+    "income_assessment_cpf_payout",
+    "income_assessment_assistance_from_other_agencies",
+    "income_assessment_assistance_from_relatives_friends",
+    "income_assessment_insurance_payout",
+    "income_assessment_rental_income",
+    "income_assessment_others_income",
+    "expenditure_assessment_mortgage_rental",
+    "expenditure_assessment_utilities",
+    "expenditure_assessment_s_cc_fees",
+    "expenditure_assessment_food_expenses",
+    "expenditure_assessment_marketing_groceries",
+    "expenditure_assessment_telecommunications",
+    "expenditure_assessment_transportation",
+    "expenditure_assessment_medical_expenses",
+    "expenditure_assessment_education_expense",
+    "expenditure_assessment_contribution_to_family_members",
+    "expenditure_assessment_domestic_helper",
+    "expenditure_assessment_loans_debts_installments",
+    "expenditure_assessment_insurance_premiums",
+    "expenditure_assessment_others_expenditure",
+    "income_total_cal",
+    "expenditure_total_cal",
+    "difference_cal",
+    "amount_total"
+]
+
+#使用函数调整数据
+target_date = pd.to_datetime("2023-06-10")
+calculate_adjusted_values(df, columns_to_adjust, target_date)
 
 # 选择特征和目标
 X = df.drop(["amount_total", "care_team","assessment_date_time"], axis=1)
