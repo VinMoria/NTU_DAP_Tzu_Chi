@@ -64,8 +64,9 @@ body {
 
 label {
     display: block;
-    margin-bottom: 5px;
+    margin: 10px;
     color: #333333;
+    font-size: 18px;
 }
 
 input[type="text"],
@@ -78,6 +79,14 @@ select {
     border: 1px solid #cccccc;
     border-radius: 4px;
     box-sizing: border-box;
+}
+
+input[type="checkbox"] {
+    margin: 10px; /* 给复选框和文本之间留出空间 */
+    accent-color: #007bff; /* Chrome, Edge, 和 Opera 支持的复选框颜色 */
+    width: 18px; /* 复选框的宽度 */
+    height: 18px; /* 复选框的高度 */
+    cursor: pointer; /* 鼠标悬停时改为指针 */
 }
 
 button {

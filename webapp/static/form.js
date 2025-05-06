@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 console.log(key, value)
             });
+            data["points"] = countCheckedCheckboxes()
 
             fetch('/submit', {
                 method: 'POST',

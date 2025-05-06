@@ -95,6 +95,7 @@ def submit_data():
         # 导入数据库
         # print(df.dtypes)
         # print(df.columns)
+        print(df_copy)
 
         profile_id = db_process.insert_case_data(df_copy)
         print(profile_id)
