@@ -108,6 +108,11 @@ def get_feature_columns(df, method):
     # step 3:
     # 处理occupation
     # 缺失填补
+
+# 处理 occupation
+    if df["occupation"].dtype.name == "category":
+        # 先增加 "missing" 类别，然后重新赋值
+        df["occupation"] = df["occupation"].cat.add_categories("missing")
     df["occupation_filled"] = df["occupation"].fillna("missing")
 
     # 缺失标志列

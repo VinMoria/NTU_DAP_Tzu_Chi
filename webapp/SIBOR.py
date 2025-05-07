@@ -19,7 +19,7 @@ def cal_rate(source_date, target_date):
 
     rate = (1 +(average_sibor_1m/100.0)) ** (day_diff/365.0)
 
-    print(f"平均值: {average_sibor_1m}, 天数差异: {day_diff}, rate: {rate}")
+    # print(f"平均值: {average_sibor_1m}, 天数差异: {day_diff}, rate: {rate}")
     return rate
 
 

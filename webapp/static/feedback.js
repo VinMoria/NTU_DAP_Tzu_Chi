@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newButton = document.createElement('button');
         newButton.textContent = 'Submit Feedback';
         newButton.className = 'my-button';
-        newButton.onclick = async function() { 
+        newButton.onclick = async function () {
             const feedbackValue = document.getElementById('feedback_value').value;
             try {
                 const response = await fetch('/update_feedback', {
@@ -59,9 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ feedback: feedbackValue, profile_id:profileId }),
+                    body: JSON.stringify({ feedback: feedbackValue, profile_id: profileId }),
                 });
-                
+
                 if (response.ok) {
                     const responseData = await response.json();
                     if (responseData.success) {
@@ -77,11 +77,11 @@ document.addEventListener('DOMContentLoaded', function () {
         };
         form.appendChild(newButton);
 
-            // Create a refresh button
+        // Create a refresh button
         const refreshButton = document.createElement('button');
         refreshButton.textContent = 'Reset';
         refreshButton.className = 'my-button';
-        refreshButton.onclick = function() {
+        refreshButton.onclick = function () {
             location.reload(); // Forces the page to reload
         };
         form.appendChild(refreshButton);
@@ -89,6 +89,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         entries.forEach(([key, value]) => {
+            // Define keys to exclude
+            const excludeKeys = ['message'];
+
+            // Continue to the next iteration if the key is in excludeKeys
+            if (excludeKeys.includes(key)) {
+                return;
+            }
             const field = document.createElement('div');
             field.className = 'form-group';
             field.innerHTML = `<label>${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</label>

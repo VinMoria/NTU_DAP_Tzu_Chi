@@ -3,9 +3,12 @@ import pandas as pd
 import pickle
 from SIBOR import cal_rate
 import db_process
+import json
+import functions
 
 app = Flask(__name__)
-app.config['JSON_SORT_KEYS'] = False
+# app.config["JSON_SORT_KEYS"] = False
+# print(app.config)
 
 income_cols = [
     "income_assessment_salary",
@@ -42,9 +45,11 @@ MODEL_PATH = "./models/xgb.pkl"
 def index():
     return render_template("index.html")
 
+
 @app.route("/form", methods=["GET", "POST"])
 def form():
     return render_template("form.html")
+
 
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
@@ -62,7 +67,6 @@ def submit_data():
         # 转移日期变量
         assessment_date = df.loc[0, "assessment_date"]
         df.drop(columns=["assessment_date"], inplace=True)
-        
 
         def convert_if_possible(col):
             try:
@@ -79,31 +83,50 @@ def submit_data():
         df["expenditure_total_cal"] = df[expenditure_cols].sum(axis=1)
         df["difference_cal"] = df["income_total_cal"] - df["expenditure_total_cal"]
 
-        # 收入调整
-        target_date = pd.to_datetime(assessment_date)
-        source_date = pd.to_datetime("2024-01-01")
 
-        adjust_rate = cal_rate(source_date, target_date)
+        # SIBOR调整
+        if df["income_rate"][0] == -1:
+            # 使用默认SIBOR
+            target_date = pd.to_datetime(assessment_date)
+            source_date = pd.to_datetime("2024-01-01")
 
+            adjust_rate = cal_rate(source_date, target_date)
+        else:
+            # 使用用户指定值
+            adjust_rate = float(df["income_rate"])
+
+        print(adjust_rate)
         for col in income_cols:
-            df[col] *= adjust_rate
+            df[col] /= adjust_rate
 
 
         # TODO 模型预测
 
+        df["amount_total"] = 0
+        df2 = functions.get_feature_columns(df,"label")
+        df3 = functions.xy(df2,"label","no","no","yes")
+        print(df3.columns)
+        print(len(df3.columns))
+        r = 10
+
+
+        df_copy["amount_total"] = r
 
         # 导入数据库
         # print(df.dtypes)
         # print(df.columns)
-        print(df_copy)
+        # print(df_copy)
 
         profile_id = db_process.insert_case_data(df_copy)
-        print(profile_id)
+        # print(profile_id)
         # print(assessment_date)
 
         # r = model_cal(df)
         # 返回成功响应
-        return jsonify({"message": "Success", "r": str(10), "profile_id":str(profile_id)}), 200
+        return (
+            jsonify({"message": "Success", "r": str(r), "profile_id": str(profile_id)}),
+            200,
+        )
     except Exception as e:
         print(e)
         return jsonify({"message": "Data processing failed", "error": str(e)}), 500
@@ -113,7 +136,7 @@ def submit_data():
 def result():
     r = request.args.get("r")
     profile_id = request.args.get("profile_id")
-    return render_template("result.html", r=r, profile_id = profile_id)
+    return render_template("result.html", r=r, profile_id=profile_id)
 
 
 @app.route("/search_profile", methods=["POST"])
@@ -126,11 +149,15 @@ def search_profile():
         data_dict = db_process.select_case_by_id(profile_id)
         data_dict["message"] = "Success"
         print(data_dict)
-        return jsonify(data_dict), 200
+        return app.response_class(
+            response=json.dumps(data_dict, ensure_ascii=False, sort_keys=False),
+            status=200,
+            mimetype='application/json'
+        )
     except Exception as e:
         print(e)
         return jsonify({"message": "Data processing failed", "error": str(e)}), 500
-    
+
 
 @app.route("/update_feedback", methods=["POST"])
 def supdate_feedback():
@@ -140,8 +167,8 @@ def supdate_feedback():
         feedback_val = int(data.get("feedback"))
         profile_id = int(data.get("profile_id"))
 
-        db_process.update_feedback(profile_id,feedback_val)
-        
+        db_process.update_feedback(profile_id, feedback_val)
+
         # 返回成功响应
         return jsonify({"success": True})
 
@@ -149,7 +176,6 @@ def supdate_feedback():
         # 记录错误并返回失败响应
         print(f"Error updating feedback: {e}")
         return jsonify({"success": False}), 500
-
 
 
 def model_cal(df):

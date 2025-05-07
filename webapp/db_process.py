@@ -48,6 +48,10 @@ def create_table():
             tertiary_18_21 INTEGER NOT NULL,
             adult_22_64 INTEGER NOT NULL,
             elderly_65_and_above INTEGER NOT NULL,
+            points IINTEGER NOT NULL,
+
+            -- Y value
+            amount_total REAL NOT NULL,
 
             -- feedback
             feedback_val REAL
@@ -94,7 +98,9 @@ def insert_case_data(df):
         'secondary_13_17', 
         'tertiary_18_21',
         'adult_22_64', 
-        'elderly_65_and_above'
+        'elderly_65_and_above',
+        'points',
+        'amount_total'
     ]
 
     # Check if DataFrame has the required columns
@@ -175,5 +181,4 @@ def select_case_by_id(profile_id):
     return data_dict
 
 if __name__ == "__main__":
-    update_feedback(1, 1500)
-    print(select_all_cases())
+    create_table()
