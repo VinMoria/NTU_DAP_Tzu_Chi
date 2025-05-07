@@ -10,6 +10,14 @@ def create_table():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             assessment_date TEXT NOT NULL,
             type_of_assistances TEXT NOT NULL,
+
+            -- Y value
+            amount_total REAL NOT NULL,
+
+            -- feedback
+            feedback_value REAL,
+
+
             age INTEGER NOT NULL,
             occupation TEXT NOT NULL,
             intake_no_of_hh INTEGER NOT NULL,
@@ -48,13 +56,8 @@ def create_table():
             tertiary_18_21 INTEGER NOT NULL,
             adult_22_64 INTEGER NOT NULL,
             elderly_65_and_above INTEGER NOT NULL,
-            points IINTEGER NOT NULL,
+            points IINTEGER NOT NULL
 
-            -- Y value
-            amount_total REAL NOT NULL,
-
-            -- feedback
-            feedback_val REAL
         )
         """
     )
@@ -136,7 +139,7 @@ def update_feedback(case_id, feedback_val):
     
     cur.execute("""
         UPDATE case_profile
-        SET feedback_val = ?
+        SET feedback_value = ?
         WHERE id = ?
     """, (feedback_val, case_id))
     
