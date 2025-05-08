@@ -10,6 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
+import joblib
 
 
 def get_log_columns():
@@ -199,6 +200,9 @@ def xy(df, method, if_log, if_pca, if_predict):
         # PCA 降维（例如保留95%的方差）
         pca = PCA(n_components=0.95)
         X = pca.fit_transform(df[X_cols])
+        joblib.dump(pca, "pca.pkl")
+        print("Dump")
+        
     else:
         X = df[X_cols]
 

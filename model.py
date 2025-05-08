@@ -14,7 +14,7 @@ import xgboost as xgb
 import pickle
 
 #读取数据
-df = pd.read_csv("data\Cleaned_Data_0506.csv")
+df = pd.read_csv("./data/Cleaned_Data_0506.csv")
 
 # # 删除目标变量中为 NaN 的行
 # df.dropna(subset=['amount_total'], inplace=True)

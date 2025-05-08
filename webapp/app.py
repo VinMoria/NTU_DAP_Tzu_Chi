@@ -5,6 +5,7 @@ from SIBOR import cal_rate
 import db_process
 import json
 import functions
+import joblib
 
 app = Flask(__name__)
 
@@ -36,7 +37,7 @@ expenditure_cols = [
 ]
 
 
-MODEL_PATH = "./models/xgbnew.pkl"
+MODEL_PATH = "./models/svm.pkl"
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -102,6 +103,27 @@ def submit_data():
         df = functions.get_feature_columns(df, "onehot")
         print(">> get_feature_columns")
         print(df.columns)
+        occ_cols = [
+            "occ_employed",
+            "occ_part-time",
+            "occ_retired",
+            "occ_unemployed",
+            "occ_antenatal_check_fees_assistance",
+            "occ_day_care_fees_assistance",
+            "occ_education_fees_assistance",
+            "occ_hiv_medication_fees",
+            "occ_household_living_assistance",
+            "occ_interim_dialysis_assistance",
+            "occ_medical_transport_assistance",
+            "occ_others",
+            "occ_student",
+            "occ_missing",
+            "occ_medical_consumables_assistance",
+        ]
+
+        for col in occ_cols:
+            if col not in df.columns:
+                df[col] = 0
 
         df = functions.X_log(df)
         print(">> X log")
@@ -109,12 +131,13 @@ def submit_data():
         df = functions.X_standard(df, "onehot", "yes")
         print(">> X standard")
 
-        X = functions.xy(df, "onehot", "yes", "yes", "yes")
+        X = functions.xy(df, "onehot", "yes", "no", "yes")
+        pca = joblib.load('./models/pca.pkl')
+        X = pca.transform(X)
         print(">> xy")
 
-        print(X.columns)
-        print(len(X.columns))
-        
+        # print(df.columns)
+
         r = model_cal(X)
 
         df_raw["amount_total"] = r
