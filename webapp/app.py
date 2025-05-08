@@ -7,8 +7,6 @@ import json
 import functions
 
 app = Flask(__name__)
-# app.config["JSON_SORT_KEYS"] = False
-# print(app.config)
 
 income_cols = [
     "income_assessment_salary",
@@ -38,7 +36,7 @@ expenditure_cols = [
 ]
 
 
-MODEL_PATH = "./models/xgb.pkl"
+MODEL_PATH = "./models/xgbnew.pkl"
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -62,7 +60,7 @@ def submit_data():
         # 从请求中获取 JSON 数据
         data = request.get_json()
         df = pd.DataFrame([data])
-        df_copy = df.copy(deep=True)
+        df_raw = df.copy(deep=True)
 
         # 转移日期变量
         assessment_date = df.loc[0, "assessment_date"]
@@ -83,7 +81,6 @@ def submit_data():
         df["expenditure_total_cal"] = df[expenditure_cols].sum(axis=1)
         df["difference_cal"] = df["income_total_cal"] - df["expenditure_total_cal"]
 
-
         # SIBOR调整
         if df["income_rate"][0] == -1:
             # 使用默认SIBOR
@@ -99,29 +96,33 @@ def submit_data():
         for col in income_cols:
             df[col] /= adjust_rate
 
-
         # TODO 模型预测
 
-        df["amount_total"] = 0
-        df2 = functions.get_feature_columns(df,"label")
-        df3 = functions.xy(df2,"label","no","no","yes")
-        print(df3.columns)
-        print(len(df3.columns))
-        r = 10
+        # df["amount_total"] = 0
+        df = functions.get_feature_columns(df, "onehot")
+        print(">> get_feature_columns")
+        print(df.columns)
 
+        df = functions.X_log(df)
+        print(">> X log")
 
-        df_copy["amount_total"] = r
+        df = functions.X_standard(df, "onehot", "yes")
+        print(">> X standard")
+
+        X = functions.xy(df, "onehot", "yes", "yes", "yes")
+        print(">> xy")
+
+        print(X.columns)
+        print(len(X.columns))
+        
+        r = model_cal(X)
+
+        df_raw["amount_total"] = r
 
         # 导入数据库
-        # print(df.dtypes)
-        # print(df.columns)
-        # print(df_copy)
 
-        profile_id = db_process.insert_case_data(df_copy)
-        # print(profile_id)
-        # print(assessment_date)
+        profile_id = db_process.insert_case_data(df_raw)
 
-        # r = model_cal(df)
         # 返回成功响应
         return (
             jsonify({"message": "Success", "r": str(r), "profile_id": str(profile_id)}),
@@ -152,7 +153,7 @@ def search_profile():
         return app.response_class(
             response=json.dumps(data_dict, ensure_ascii=False, sort_keys=False),
             status=200,
-            mimetype='application/json'
+            mimetype="application/json",
         )
     except Exception as e:
         print(e)
@@ -179,8 +180,9 @@ def supdate_feedback():
 
 
 def model_cal(df):
+    df_history = pd.read_csv("Cleaned_Data_0506.csv")
     model = pickle.load(open(MODEL_PATH, "rb"))
-    prediction = model.predict(df)
+    prediction = model.predict(df) + functions.return_by_global_mean(df_history)
     return prediction[0]
 
 
