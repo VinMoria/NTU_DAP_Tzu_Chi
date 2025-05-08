@@ -198,6 +198,7 @@ def xy(df, method, if_log, if_pca, if_predict):
         # PCA 降维（例如保留95%的方差）
         pca = joblib.load('./models/pca.pkl')
         X = pca.transform(df[X_cols])
+        # X = df[X_cols]
     else:
         X = df[X_cols]
 

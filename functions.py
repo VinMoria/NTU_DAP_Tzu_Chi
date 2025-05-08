@@ -199,12 +199,12 @@ def xy(df, method, if_log, if_pca, if_predict):
     X_cols = log_cols + other_cols
 
     if if_pca == 'yes':
-        # PCA 降维（例如保留95%的方差）
+        # # PCA 降维（例如保留95%的方差）
         pca = PCA(n_components=0.95)
         X = pca.fit_transform(df[X_cols])
-        joblib.dump(pca, "pca.pkl")
-        print("pca Dump")
-        
+        # joblib.dump(pca, "pca.pkl")
+        # print("pca Dump")
+        # X = df[X_cols]
     else:
         X = df[X_cols]
 

@@ -36,6 +36,33 @@ expenditure_cols = [
     "expenditure_assessment_others_expenditure",
 ]
 
+adjust_cols = [
+    "income_assessment_salary",
+    "income_assessment_cpf_payout",
+    "income_assessment_assistance_from_other_agencies",
+    "income_assessment_assistance_from_relatives_friends",
+    "income_assessment_insurance_payout",
+    "income_assessment_rental_income",
+    "income_assessment_others_income",
+    "expenditure_assessment_mortgage_rental",
+    "expenditure_assessment_utilities",
+    "expenditure_assessment_s_cc_fees",
+    "expenditure_assessment_food_expenses",
+    "expenditure_assessment_marketing_groceries",
+    "expenditure_assessment_telecommunications",
+    "expenditure_assessment_transportation",
+    "expenditure_assessment_medical_expenses",
+    "expenditure_assessment_education_expense",
+    "expenditure_assessment_contribution_to_family_members",
+    "expenditure_assessment_domestic_helper",
+    "expenditure_assessment_loans_debts_installments",
+    "expenditure_assessment_insurance_premiums",
+    "expenditure_assessment_others_expenditure",
+    "income_total_cal",
+    "expenditure_total_cal",
+    "difference_cal",
+]
+
 
 MODEL_PATH = "./models/svm.pkl"
 
@@ -94,7 +121,7 @@ def submit_data():
             adjust_rate = float(df["income_rate"])
 
         print(adjust_rate)
-        for col in income_cols:
+        for col in adjust_cols:
             df[col] /= adjust_rate
 
         # TODO 模型预测
@@ -102,7 +129,7 @@ def submit_data():
         # df["amount_total"] = 0
         df = functions.get_feature_columns(df, "onehot")
         print(">> get_feature_columns")
-        print(df.columns)
+        # print(df.columns)
         occ_cols = [
             "occ_employed",
             "occ_part-time",
@@ -131,13 +158,13 @@ def submit_data():
         df = functions.X_standard(df, "onehot", "yes")
         print(">> X standard")
 
-        X = functions.xy(df, "onehot", "yes", "yes", "yes")
-        print(X)
+        X = functions.xy(df, "onehot", "yes", "no", "yes")
+        # print(X)
         print(">> xy")
 
-        print(X)
-
-        r = model_cal(X)
+        X.to_csv("web_data_before_model.csv")
+        print("res: ", model_cal(X))
+        r = round(model_cal(X) * adjust_rate, 2)
 
         df_raw["amount_total"] = r
 
@@ -183,7 +210,7 @@ def search_profile():
 
 
 @app.route("/update_feedback", methods=["POST"])
-def supdate_feedback():
+def update_feedback():
     try:
         # 从请求中获取 JSON 数据
         data = request.get_json()
@@ -202,9 +229,9 @@ def supdate_feedback():
 
 
 def model_cal(df):
-    df_history = pd.read_csv("Cleaned_Data_0506.csv")
+    # df_history = pd.read_csv("Cleaned_Data_0506.csv")
     model = pickle.load(open(MODEL_PATH, "rb"))
-    prediction = model.predict(df) + functions.return_by_global_mean(df_history)
+    prediction = model.predict(df) + 813.392691382825
     return prediction[0]
 
 

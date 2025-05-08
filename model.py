@@ -1,5 +1,13 @@
 from SIBOR import cal_rate
-from functions import get_log_columns,get_other_columns,get_feature_columns,X_log,X_standard,xy,return_by_global_mean
+from functions import (
+    get_log_columns,
+    get_other_columns,
+    get_feature_columns,
+    X_log,
+    X_standard,
+    xy,
+    return_by_global_mean,
+)
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -10,10 +18,10 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
 from sklearn.svm import SVR
-import xgboost as xgb 
+import xgboost as xgb
 import pickle
 
-#读取数据
+# 读取数据
 df = pd.read_csv("./data/Cleaned_Data_0506.csv")
 
 # # 删除目标变量中为 NaN 的行
@@ -37,14 +45,20 @@ df = pd.read_csv("./data/Cleaned_Data_0506.csv")
 #     label_encoders[col] = le
 
 
-
 def calculate_adjusted_values(df, columns):
     source_date = pd.to_datetime("2024-01-01")
-    df["assessment_date_time"] = pd.to_datetime(df["assessment_date_time"], errors='coerce')  # 使用 errors='coerce'
+    df["assessment_date_time"] = pd.to_datetime(
+        df["assessment_date_time"], errors="coerce"
+    )  # 使用 errors='coerce'
     for column in columns:
-        df[column] = df.apply(lambda row: row[column] / cal_rate(source_date, row["assessment_date_time"])
-                              if pd.notna(row["assessment_date_time"]) else row[column], axis=1)
-
+        df[column] = df.apply(
+            lambda row: (
+                row[column] / cal_rate(source_date, row["assessment_date_time"])
+                if pd.notna(row["assessment_date_time"])
+                else row[column]
+            ),
+            axis=1,
+        )
 
 
 # ... 其余代码 ...
@@ -74,10 +88,10 @@ columns_to_adjust = [
     "income_total_cal",
     "expenditure_total_cal",
     "difference_cal",
-    "amount_total"
+    "amount_total",
 ]
 
-#使用函数调整数据
+# 使用函数调整数据
 calculate_adjusted_values(df, columns_to_adjust)
 
 # # 选择特征和目标
@@ -88,57 +102,62 @@ calculate_adjusted_values(df, columns_to_adjust)
 # scaler = StandardScaler()
 # X_scaled = scaler.fit_transform(X)
 
-global_mean=return_by_global_mean(df)
-df=get_feature_columns(df, "onehot")
-df_1=X_log(df)
-df_1=X_standard(df_1,"onehot","yes")
-X1,y1=xy(df_1, "onehot", "yes", "yes", "no")
-df=X_standard(df,"onehot","no")
-X,y=xy(df, "onehot", "no", "yes", "no")
+global_mean = return_by_global_mean(df)
+print(global_mean)
+df = get_feature_columns(df, "onehot")
+df_1 = X_log(df)
+df_1 = X_standard(df_1, "onehot", "yes")
+X1, y1 = xy(df_1, "onehot", "yes", "no", "no")
+df = X_standard(df, "onehot", "no")
+X, y = xy(df, "onehot", "no", "yes", "no")
 
 # 划分训练集和测试集
-X_train1, X_test1, y_train1, y_test1 = train_test_split(X1, y1, test_size=0.3, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train1, X_test1, y_train1, y_test1 = train_test_split(
+    X1, y1, test_size=0.3, random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
 y_true1 = df.loc[y_test1.index, "amount_total"]
 y_true = df.loc[y_test.index, "amount_total"]
 
 # ========== 改良版KNN 回归 ==========
 param_grid_knn = {
-    'n_neighbors': list(range(1, 31)),  # 不同的邻居数量
-    'metric': ['euclidean', 'manhattan', 'chebyshev', 'cosine'],  # 不同的距离度量
+    "n_neighbors": list(range(1, 31)),  # 不同的邻居数量
+    "metric": ["euclidean", "manhattan", "chebyshev", "cosine"],  # 不同的距离度量
 }
 
 knn = KNeighborsRegressor()
-grid_knn = GridSearchCV(knn, param_grid_knn, cv=5, scoring='r2')
+grid_knn = GridSearchCV(knn, param_grid_knn, cv=5, scoring="r2")
 grid_knn.fit(X_train1, y_train1)
 
 best_knn = grid_knn.best_estimator_
-y_pred_knn = best_knn.predict(X_test1)+global_mean
+y_pred_knn = best_knn.predict(X_test1) + global_mean
 knn_r2 = r2_score(y_true1, y_pred_knn)
 print(f"KNN R^2: {knn_r2:.4f}")
 
 # 保存模型到文件中
-with open('./models/knn.pkl', 'wb') as file:
+with open("./models/knn.pkl", "wb") as file:
     pickle.dump(best_knn, file)
 
 # ========== Random Forest 回归 ==========
 param_grid_rf = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [5, 10, 15, None],
-    'min_samples_leaf': [1, 2, 5]
+    "n_estimators": [50, 100, 200],
+    "max_depth": [5, 10, 15, None],
+    "min_samples_leaf": [1, 2, 5],
 }
 
 rf = RandomForestRegressor(random_state=42)
-grid_rf = GridSearchCV(rf, param_grid_rf, cv=5, scoring='r2')
+grid_rf = GridSearchCV(rf, param_grid_rf, cv=5, scoring="r2")
 grid_rf.fit(X_train, y_train)
 
 best_rf = grid_rf.best_estimator_
-y_pred_rf = best_rf.predict(X_test)+global_mean
+y_pred_rf = best_rf.predict(X_test) + global_mean
 rf_r2 = r2_score(y_true, y_pred_rf)
 print(f"Random Forest R^2: {rf_r2:.4f}")
 
 # 保存模型到文件中
-with open('./models/rf.pkl', 'wb') as file:
+with open("./models/rf.pkl", "wb") as file:
     pickle.dump(best_rf, file)
 
 # ========== CART 决策树 回归 ==========
@@ -147,18 +166,18 @@ path = dt.cost_complexity_pruning_path(X_train, y_train)
 ccp_alphas = path.ccp_alphas
 
 param_grid_dt = {
-    'max_depth': [3, 5, 8, 12, None],
-    'min_samples_split': [5, 10, 20],
-    'min_samples_leaf': [2, 5, 10],
-    'ccp_alpha': [0.0, 0.01, 0.1, 0.2] 
+    "max_depth": [3, 5, 8, 12, None],
+    "min_samples_split": [5, 10, 20],
+    "min_samples_leaf": [2, 5, 10],
+    "ccp_alpha": [0.0, 0.01, 0.1, 0.2],
 }
 
-#定义参数网格
+# 定义参数网格
 # param_grid_dt = {
 #     'max_depth': [3, 5, 8, 12,None],               # 限制树深度，防止过拟合
 #     'min_samples_split': [5, 10, 20],         # 样本不多，建议设高点
 #     'min_samples_leaf': [2, 5, 10],           # 每片叶子至少有几个样本
-#     'ccp_alpha': ccp_alphas  
+#     'ccp_alpha': ccp_alphas
 # }
 
 # param_grid_dt = {
@@ -168,58 +187,58 @@ param_grid_dt = {
 #     'ccp_alpha': ccp_alphas  # 加入ccp_alpha进行搜索
 # }
 
-grid_dt = GridSearchCV(dt, param_grid_dt, cv=5, scoring='r2')
+grid_dt = GridSearchCV(dt, param_grid_dt, cv=5, scoring="r2")
 grid_dt.fit(X_train, y_train)
 
 best_dt = grid_dt.best_estimator_
-y_pred_dt = best_dt.predict(X_test)+global_mean
+y_pred_dt = best_dt.predict(X_test) + global_mean
 dt_r2 = r2_score(y_true, y_pred_dt)
 print(f"CART Decision Tree R^2: {dt_r2:.4f}")
 
 # 保存模型到文件中
-with open('./models/cart.pkl', 'wb') as file:
+with open("./models/cart.pkl", "wb") as file:
     pickle.dump(best_dt, file)
 
 
 # ========== XGBoost 回归 ==========
 
 param_grid_xgb = {
-    'n_estimators': [100, 200],
-    'max_depth': [3, 5, 7],
-    'learning_rate': [0.01, 0.1, 0.2]
+    "n_estimators": [100, 200],
+    "max_depth": [3, 5, 7],
+    "learning_rate": [0.01, 0.1, 0.2],
 }
 
-xgbr = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
-grid_xgb = GridSearchCV(xgbr, param_grid_xgb, cv=5, scoring='r2')
+xgbr = xgb.XGBRegressor(objective="reg:squarederror", random_state=42)
+grid_xgb = GridSearchCV(xgbr, param_grid_xgb, cv=5, scoring="r2")
 grid_xgb.fit(X_train1, y_train1)
 
 best_xgb = grid_xgb.best_estimator_
-y_pred_xgb = best_xgb.predict(X_test1)+global_mean
+y_pred_xgb = best_xgb.predict(X_test1) + global_mean
 xgb_r2 = r2_score(y_true1, y_pred_xgb)
 print(f"XGBoost R^2: {xgb_r2:.4f}")
 
 
 # 保存模型到文件中
-with open('./models/xgbnew.pkl', 'wb') as file:
+with open("./models/xgbnew.pkl", "wb") as file:
     pickle.dump(best_xgb, file)
 
 # ========== 支持向量机(SVM) 回归 ==========
 
 param_grid_svm = {
-    'C': [0.1, 1, 10],
-    'epsilon': [0.01, 0.1, 0.2],
-    'kernel': ['linear', 'rbf']
+    "C": [0.1, 1, 10],
+    "epsilon": [0.01, 0.1, 0.2],
+    "kernel": ["linear", "rbf"],
 }
 
 svm = SVR()
-grid_svm = GridSearchCV(svm, param_grid_svm, cv=5, scoring='r2')
+grid_svm = GridSearchCV(svm, param_grid_svm, cv=5, scoring="r2")
 grid_svm.fit(X_train1, y_train1)
 
 best_svm = grid_svm.best_estimator_
-y_pred_svm = best_svm.predict(X_test1)+global_mean
+y_pred_svm = best_svm.predict(X_test1) + global_mean
 svm_r2 = r2_score(y_true1, y_pred_svm)
 print(f"SVM R^2: {svm_r2:.4f}")
 
 # 保存模型到文件中
-with open('./models/svm.pkl', 'wb') as file:
+with open("./models/svm.pkl", "wb") as file:
     pickle.dump(best_svm, file)
