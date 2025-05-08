@@ -36,21 +36,18 @@ df = pd.read_csv("data\Cleaned_Data_0506.csv")
 #     df[col] = le.fit_transform(df[col])
 #     label_encoders[col] = le
 
-global_mean=return_by_global_mean(df)
-df=get_feature_columns(df, "onehot")
-df_1=X_log(df)
-df_1=X_standard(df_1,"onehot","yes")
-X1,y1=xy(df_1, "onehot", "yes", "yes", "no")
-df=X_standard(df,"onehot","no")
-X,y=xy(df, "onehot", "no", "yes", "no")
 
 
-def calculate_adjusted_values(df, columns, target_date):
+def calculate_adjusted_values(df, columns):
     source_date = pd.to_datetime("2024-01-01")
+    df["assessment_date_time"] = pd.to_datetime(df["assessment_date_time"], errors='coerce')  # 使用 errors='coerce'
     for column in columns:
-        # Adjust each value in the specified column
-        df[column] = df[column].apply(lambda x: x * cal_rate(source_date, target_date))
+        df[column] = df.apply(lambda row: row[column] / cal_rate(source_date, row["assessment_date_time"])
+                              if pd.notna(row["assessment_date_time"]) else row[column], axis=1)
 
+
+
+# ... 其余代码 ...
 # 设置想要调整的列
 columns_to_adjust = [
     "income_assessment_salary",
@@ -81,8 +78,7 @@ columns_to_adjust = [
 ]
 
 #使用函数调整数据
-target_date = pd.to_datetime("2023-06-10")
-calculate_adjusted_values(df, columns_to_adjust, target_date)
+calculate_adjusted_values(df, columns_to_adjust)
 
 # # 选择特征和目标
 # X = df.drop(["amount_total", "care_team","assessment_date_time"], axis=1)
@@ -91,6 +87,14 @@ calculate_adjusted_values(df, columns_to_adjust, target_date)
 # # 标准化
 # scaler = StandardScaler()
 # X_scaled = scaler.fit_transform(X)
+
+global_mean=return_by_global_mean(df)
+df=get_feature_columns(df, "onehot")
+df_1=X_log(df)
+df_1=X_standard(df_1,"onehot","yes")
+X1,y1=xy(df_1, "onehot", "yes", "yes", "no")
+df=X_standard(df,"onehot","no")
+X,y=xy(df, "onehot", "no", "yes", "no")
 
 # 划分训练集和测试集
 X_train1, X_test1, y_train1, y_test1 = train_test_split(X1, y1, test_size=0.3, random_state=42)
