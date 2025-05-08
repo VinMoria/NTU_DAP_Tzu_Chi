@@ -181,6 +181,8 @@ def X_standard(df, method, if_log):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(df[X_cols])
     df[X_cols] = X_scaled  # 覆盖原有列
+    joblib.dump(scaler, "scaler.pkl")
+    print("scaler dump")
 
     return df
 
@@ -201,7 +203,7 @@ def xy(df, method, if_log, if_pca, if_predict):
         pca = PCA(n_components=0.95)
         X = pca.fit_transform(df[X_cols])
         joblib.dump(pca, "pca.pkl")
-        print("Dump")
+        print("pca Dump")
         
     else:
         X = df[X_cols]

@@ -131,12 +131,11 @@ def submit_data():
         df = functions.X_standard(df, "onehot", "yes")
         print(">> X standard")
 
-        X = functions.xy(df, "onehot", "yes", "no", "yes")
-        pca = joblib.load('./models/pca.pkl')
-        X = pca.transform(X)
+        X = functions.xy(df, "onehot", "yes", "yes", "yes")
+        print(X)
         print(">> xy")
 
-        # print(df.columns)
+        print(X)
 
         r = model_cal(X)
 

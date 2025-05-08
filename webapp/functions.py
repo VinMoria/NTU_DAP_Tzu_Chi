@@ -1,15 +1,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBRegressor
 from sklearn.decomposition import PCA
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.metrics import r2_score
-from sklearn.model_selection import GridSearchCV
+import joblib
 
 
 def get_log_columns():
@@ -182,8 +176,8 @@ def X_standard(df, method, if_log):
 
     X_cols = log_cols + other_cols
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(df[X_cols])
+    scaler = joblib.load("./models/scaler.pkl")
+    X_scaled = scaler.transform(df[X_cols])
     df[X_cols] = X_scaled  # 覆盖原有列
 
     return df
@@ -202,8 +196,8 @@ def xy(df, method, if_log, if_pca, if_predict):
 
     if if_pca == 'yes':
         # PCA 降维（例如保留95%的方差）
-        pca = PCA(n_components=0.95)
-        X = pca.fit_transform(df[X_cols])
+        pca = joblib.load('./models/pca.pkl')
+        X = pca.transform(df[X_cols])
     else:
         X = df[X_cols]
 
