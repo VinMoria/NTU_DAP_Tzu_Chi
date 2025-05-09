@@ -20,9 +20,21 @@ from sklearn.metrics import r2_score
 from sklearn.svm import SVR
 import xgboost as xgb
 import pickle
+import matplotlib.pyplot as plt
 
 # 读取数据
 df = pd.read_csv("./data/Cleaned_Data_0506.csv")
+
+Q1 = df["amount_total"].quantile(0.25)
+Q3 = df["amount_total"].quantile(0.75)
+IQR = Q3 - Q1
+
+# 定义上下限：1.5倍IQR范围之外视为极端值
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+# 只保留非极端值
+df = df[(df["amount_total"] >= lower_bound) & (df["amount_total"] <= upper_bound)]
 
 # # 删除目标变量中为 NaN 的行
 # df.dropna(subset=['amount_total'], inplace=True)
@@ -113,7 +125,7 @@ X, y = xy(df, "onehot", "no", "yes", "no")
 
 # 划分训练集和测试集
 X_train1, X_test1, y_train1, y_test1 = train_test_split(
-    X1, y1, test_size=0.3, random_state=42
+    X1, y1, test_size=0.3, random_state=22
 )
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
@@ -238,6 +250,17 @@ best_svm = grid_svm.best_estimator_
 y_pred_svm = best_svm.predict(X_test1) + global_mean
 svm_r2 = r2_score(y_true1, y_pred_svm)
 print(f"SVM R^2: {svm_r2:.4f}")
+
+# 计算相对误差率
+relative_errors_svm = ((y_true1 - y_pred_svm) )
+
+# 绘制相对误差率图
+plt.figure(figsize=(10, 6))
+plt.bar(range(len(y_true1)), relative_errors_svm, color='skyblue')
+plt.xlabel('index')
+plt.ylabel('relative error radio')
+plt.title('SVM relative error')
+plt.show()
 
 # 保存模型到文件中
 with open("./models/svm.pkl", "wb") as file:
