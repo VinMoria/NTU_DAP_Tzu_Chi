@@ -252,14 +252,14 @@ svm_r2 = r2_score(y_true1, y_pred_svm)
 print(f"SVM R^2: {svm_r2:.4f}")
 
 # 计算相对误差率
-relative_errors_svm = ((y_true1 - y_pred_svm) )
+relative_errors_svm = y_true1 - y_pred_svm
 
 # 绘制相对误差率图
 plt.figure(figsize=(10, 6))
-plt.bar(range(len(y_true1)), relative_errors_svm, color='skyblue')
-plt.xlabel('index')
-plt.ylabel('relative error radio')
-plt.title('SVM relative error')
+plt.bar(range(len(y_true1)), relative_errors_svm, color="skyblue")
+plt.xlabel("index")
+plt.ylabel("relative error radio")
+plt.title("SVM relative error")
 plt.show()
 
 # 保存模型到文件中

@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (form) {
         form.addEventListener("submit", function(event) {
             event.preventDefault(); // 阻止默认表单提交行为
-            console.log("press submit");
             const formData = new FormData(form);
             const data = {};
 
@@ -17,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log(key, value)
             });
             data["points"] = countCheckedCheckboxes()
+            data["special_cases"] = getCheckedLabels()
 
             fetch('/submit', {
                 method: 'POST',
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log('Success:', data);
 
                 if (data.r !== undefined) { // 确保 r 存在
-                window.location.href = `/result?r=${data.r}&profile_id=${data.profile_id}`;
+                window.location.href = `/result?r=${data.r}&profile_id=${data.profile_id}&hint=${data.hint}`;
                 } else {
                     console.error('Error: Missing r in response');
                 }
@@ -68,4 +68,12 @@ function toggleInput() {
 function countCheckedCheckboxes() {
     const checkboxes = document.querySelectorAll('input[name="special_case"]:checked');
     return checkboxes.length;
+}
+
+function getCheckedLabels() {
+    const checkboxes = document.querySelectorAll('input[name="special_case"]:checked');
+    const labels = Array.from(checkboxes).map(checkbox => {
+        return document.querySelector(`label[for="${checkbox.id}"]`).textContent;
+    });
+    return labels.join(', ');
 }

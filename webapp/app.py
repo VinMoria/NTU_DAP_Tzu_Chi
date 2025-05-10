@@ -88,6 +88,12 @@ def submit_data():
         # 从请求中获取 JSON 数据
         data = request.get_json()
         df = pd.DataFrame([data])
+
+        # special case label 仅用于前端显示
+        hint = get_hint(df)
+        # special_cases = df.loc[0, "special_cases"]
+        df.drop(columns=["special_cases"], inplace=True)
+
         df_raw = df.copy(deep=True)
 
         # 转移日期变量
@@ -120,11 +126,9 @@ def submit_data():
             # 使用用户指定值
             adjust_rate = float(df["income_rate"])
 
-        print(adjust_rate)
+        # print(adjust_rate)
         for col in adjust_cols:
             df[col] /= adjust_rate
-
-        # TODO 模型预测
 
         # df["amount_total"] = 0
         df = functions.get_feature_columns(df, "onehot")
@@ -172,9 +176,18 @@ def submit_data():
 
         profile_id = db_process.insert_case_data(df_raw)
 
+        # 组装一个额外的copayment提示
+
         # 返回成功响应
         return (
-            jsonify({"message": "Success", "r": str(r), "profile_id": str(profile_id)}),
+            jsonify(
+                {
+                    "message": "Success",
+                    "hint": hint,
+                    "r": str(r),
+                    "profile_id": str(profile_id),
+                }
+            ),
             200,
         )
     except Exception as e:
@@ -186,7 +199,8 @@ def submit_data():
 def result():
     r = request.args.get("r")
     profile_id = request.args.get("profile_id")
-    return render_template("result.html", r=r, profile_id=profile_id)
+    hint = request.args.get("hint")
+    return render_template("result.html", r=r, profile_id=profile_id, hint=hint)
 
 
 @app.route("/search_profile", methods=["POST"])
@@ -198,7 +212,7 @@ def search_profile():
 
         data_dict = db_process.select_case_by_id(profile_id)
         data_dict["message"] = "Success"
-        print(data_dict)
+        # print(data_dict)
         return app.response_class(
             response=json.dumps(data_dict, ensure_ascii=False, sort_keys=False),
             status=200,
@@ -235,5 +249,30 @@ def model_cal(df):
     return prediction[0]
 
 
+def get_hint(df):
+    case_check_list = [
+        "medical_transport_assistance",
+        "medical_consumables_assistance",
+        "interim_dialysis_assistance",
+    ]
+
+    apply_type = df.loc[0, "type_of_assistances"]
+    case_str = df.loc[0, "special_cases"]
+
+    res = ""
+
+    if apply_type in case_check_list:
+        apply_type = " ".join(word.capitalize() for word in apply_type.split("_"))
+        res = f"The type of this case is {apply_type}. "
+    if len(case_str) > 0:
+        res += f"It includes specical cases: {case_str}. "
+
+    if len(res) > 0:
+        res += "May consider copayment or other customised assistance options."
+
+    return res
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
