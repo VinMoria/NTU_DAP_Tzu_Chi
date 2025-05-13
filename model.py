@@ -21,9 +21,11 @@ from sklearn.svm import SVR
 import xgboost as xgb
 import pickle
 import matplotlib.pyplot as plt
+from skopt import BayesSearchCV
+
 
 # 读取数据
-df = pd.read_csv("./data/Cleaned_Data_0506.csv")
+df = pd.read_csv("./data/Cleaned_Data_0509.csv")
 
 Q1 = df["amount_total"].quantile(0.25)
 Q3 = df["amount_total"].quantile(0.75)
@@ -213,25 +215,44 @@ with open("./models/cart.pkl", "wb") as file:
 
 
 # ========== XGBoost 回归 ==========
+from skopt import BayesSearchCV
 
-param_grid_xgb = {
-    "n_estimators": [100, 200],
-    "max_depth": [3, 5, 7],
-    "learning_rate": [0.01, 0.1, 0.2],
-}
+# ... rest of the import and initial code ...
 
-xgbr = xgb.XGBRegressor(objective="reg:squarederror", random_state=42)
-grid_xgb = GridSearchCV(xgbr, param_grid_xgb, cv=5, scoring="r2")
-grid_xgb.fit(X_train1, y_train1)
+def optimize_xgboost(X_train, y_train):
+    search_space = {
+        'n_estimators': (50, 300),  # Smaller range for faster optimization
+        'max_depth': (3, 15),
+        'learning_rate': (0.01, 0.3, 'log-uniform'),
+        'subsample': (0.5, 1.0, 'uniform'),
+        'colsample_bytree': (0.5, 1.0, 'uniform'),
+        'gamma': (0, 5),
+        'reg_alpha': (0, 5),
+        'reg_lambda': (0, 5)
+    }
 
-best_xgb = grid_xgb.best_estimator_
+    xgbr = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+    opt = BayesSearchCV(
+        estimator=xgbr,
+        search_spaces=search_space,
+        n_iter=32,
+        cv=5,
+        scoring='r2',
+        random_state=42
+    )
+    
+    opt.fit(X_train, y_train)
+    return opt
+
+# Call optimization function
+optimized_xgb = optimize_xgboost(X_train1, y_train1)
+best_xgb = optimized_xgb.best_estimator_
 y_pred_xgb = best_xgb.predict(X_test1) + global_mean
 xgb_r2 = r2_score(y_true1, y_pred_xgb)
-print(f"XGBoost R^2: {xgb_r2:.4f}")
+print(f"Optimized XGBoost R^2: {xgb_r2:.4f}")
 
-
-# 保存模型到文件中
-with open("./models/xgbnew.pkl", "wb") as file:
+# Save the optimized model
+with open("./models/optimized_xgb.pkl", "wb") as file:
     pickle.dump(best_xgb, file)
 
 # ========== 支持向量机(SVM) 回归 ==========
@@ -251,17 +272,57 @@ y_pred_svm = best_svm.predict(X_test1) + global_mean
 svm_r2 = r2_score(y_true1, y_pred_svm)
 print(f"SVM R^2: {svm_r2:.4f}")
 
-# 计算相对误差率
-relative_errors_svm = y_true1 - y_pred_svm
+# # 计算相对误差率
+# relative_errors_svm = y_true1 - y_pred_svm
 
-# 绘制相对误差率图
-plt.figure(figsize=(10, 6))
-plt.bar(range(len(y_true1)), relative_errors_svm, color="skyblue")
-plt.xlabel("index")
-plt.ylabel("relative error radio")
-plt.title("SVM relative error")
-plt.show()
+# # 绘制相对误差率图
+# plt.figure(figsize=(10, 6))
+# plt.bar(range(len(y_true1)), relative_errors_svm, color="skyblue")
+# plt.xlabel("index")
+# plt.ylabel("relative error radio")
+# plt.title("SVM relative error")
+# plt.show()
 
 # 保存模型到文件中
 with open("./models/svm.pkl", "wb") as file:
     pickle.dump(best_svm, file)
+
+
+
+def plot_predictions_vs_actual_xgb(actual, predicted, title="XGBoost Prediction vs Actual"):
+    plt.figure(figsize=(10, 6))
+    plt.scatter(actual, predicted, color='lightcoral', edgecolor='k', alpha=0.7)
+    plt.plot([actual.min(), actual.max()], [actual.min(), actual.max()], 'k--', lw=2)
+    plt.xlabel('Actual')
+    plt.ylabel('Predicted')
+    plt.title(title)
+    plt.show()
+
+plot_predictions_vs_actual_xgb(y_true1, y_pred_xgb, title="XGBoost Prediction vs Actual")
+
+
+def residual_plot_xgb(actual, predicted, title="XGBoost Residual Plot"):
+    residuals = actual - predicted
+    plt.figure(figsize=(10, 6))
+    plt.scatter(predicted, residuals, color='mediumseagreen', edgecolor='k', alpha=0.7)
+    plt.hlines(y=0, xmin=predicted.min(), xmax=predicted.max(), linestyles='dashed')
+    plt.xlabel('Predicted')
+    plt.ylabel('Residuals')
+    plt.title(title)
+    plt.show()
+
+residual_plot_xgb(y_true1, y_pred_xgb, title="XGBoost Residual Plot")
+
+
+
+def actual_vs_predicted_line_plot_xgb(actual, predicted, title="XGBoost Actual vs Predicted Line Plot"):
+    plt.figure(figsize=(12, 6))
+    plt.plot(actual, label='Actual', color='blue')
+    plt.plot(predicted, label='Predicted', color='red', linestyle='dashed')
+    plt.xlabel('Samples')
+    plt.ylabel('Values')
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
+actual_vs_predicted_line_plot_xgb(y_true1, y_pred_xgb, title="XGBoost Actual vs Predicted Line Plot")
