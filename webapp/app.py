@@ -64,7 +64,7 @@ adjust_cols = [
 ]
 
 
-MODEL_PATH = "./models/svm.pkl"
+MODEL_PATH = "./models/optimized_xgb.pkl"
 
 
 @app.route("/", methods=["GET", "POST"])
