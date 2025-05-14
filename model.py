@@ -22,6 +22,8 @@ import xgboost as xgb
 import pickle
 import matplotlib.pyplot as plt
 from skopt import BayesSearchCV
+import matplotlib.pyplot as plt
+from xgboost import plot_importance
 
 
 # 读取数据
@@ -287,6 +289,15 @@ print(f"SVM R^2: {svm_r2:.4f}")
 with open("./models/svm.pkl", "wb") as file:
     pickle.dump(best_svm, file)
 
+def plot_feature_importance_xgb(booster, figsize=(12, 8), top_n=5):
+    plt.figure(figsize=figsize)
+    ax = plot_importance(booster, max_num_features=top_n, importance_type='weight', xlabel='Feature Importance Score')
+    ax.set_title("XGBoost Feature Importance")
+    ax.set_xlabel("Feature Importance Score")
+    plt.tight_layout()  # Ensures everything fits into the figure area
+    plt.show()
+
+plot_feature_importance_xgb(best_xgb)
 
 
 def plot_predictions_vs_actual_xgb(actual, predicted, title="XGBoost Prediction vs Actual"):
