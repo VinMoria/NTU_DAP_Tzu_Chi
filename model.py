@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 from skopt import BayesSearchCV
 import matplotlib.pyplot as plt
 from xgboost import plot_importance
+from sklearn.metrics import mean_squared_error
 
 
 # 读取数据
@@ -152,6 +153,10 @@ y_pred_knn = best_knn.predict(X_test1) + global_mean
 knn_r2 = r2_score(y_true1, y_pred_knn)
 print(f"KNN R^2: {knn_r2:.4f}")
 
+# Calculate RMSE for KNN
+knn_rmse = mean_squared_error(y_true1, y_pred_knn, squared=False)
+print(f"KNN RMSE: {knn_rmse:.4f}")
+
 # 保存模型到文件中
 with open("./models/knn.pkl", "wb") as file:
     pickle.dump(best_knn, file)
@@ -171,6 +176,10 @@ best_rf = grid_rf.best_estimator_
 y_pred_rf = best_rf.predict(X_test) + global_mean
 rf_r2 = r2_score(y_true, y_pred_rf)
 print(f"Random Forest R^2: {rf_r2:.4f}")
+
+# Calculate RMSE for Random Forest
+rf_rmse = mean_squared_error(y_true, y_pred_rf, squared=False)
+print(f"Random Forest RMSE: {rf_rmse:.4f}")
 
 # 保存模型到文件中
 with open("./models/rf.pkl", "wb") as file:
@@ -210,6 +219,10 @@ best_dt = grid_dt.best_estimator_
 y_pred_dt = best_dt.predict(X_test) + global_mean
 dt_r2 = r2_score(y_true, y_pred_dt)
 print(f"CART Decision Tree R^2: {dt_r2:.4f}")
+
+# Calculate RMSE for CART Decision Tree
+dt_rmse = mean_squared_error(y_true, y_pred_dt, squared=False)
+print(f"CART Decision Tree RMSE: {dt_rmse:.4f}")
 
 # 保存模型到文件中
 with open("./models/cart.pkl", "wb") as file:
@@ -253,6 +266,10 @@ y_pred_xgb = best_xgb.predict(X_test1) + global_mean
 xgb_r2 = r2_score(y_true1, y_pred_xgb)
 print(f"Optimized XGBoost R^2: {xgb_r2:.4f}")
 
+# Calculate RMSE for Optimized XGBoost
+xgb_rmse = mean_squared_error(y_true1, y_pred_xgb, squared=False)
+print(f"Optimized XGBoost RMSE: {xgb_rmse:.4f}")
+
 # Save the optimized model
 with open("./models/optimized_xgb.pkl", "wb") as file:
     pickle.dump(best_xgb, file)
@@ -273,6 +290,10 @@ best_svm = grid_svm.best_estimator_
 y_pred_svm = best_svm.predict(X_test1) + global_mean
 svm_r2 = r2_score(y_true1, y_pred_svm)
 print(f"SVM R^2: {svm_r2:.4f}")
+
+# Calculate RMSE for SVM
+svm_rmse = mean_squared_error(y_true1, y_pred_svm, squared=False)
+print(f"SVM RMSE: {svm_rmse:.4f}")
 
 # # 计算相对误差率
 # relative_errors_svm = y_true1 - y_pred_svm
